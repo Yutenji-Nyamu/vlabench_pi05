@@ -17,4 +17,6 @@ Execution starts with the official topology: one policy server and two independe
 
 Recording additions are isolated in `tools/pi05_eval`: durable episode JSON, bounded task-level error skipping, progress timestamps, and the terminal RGB observation appended to the native four-camera mosaic video. Successful and failed episodes retain videos. Errors and skipped configurations are reported separately from valid policy failures and are never silently removed from the coverage denominator.
 
+The video mosaic preserves native camera indices `[0,1]` above `[2,3]`. The official policy uses cameras 0, 2 and 3 (camera 3 is the wrist view). For a valid episode, video frames equal executed actions plus one terminal frame; the terminal mosaic is also stored as `.last.jpg`. The native 10 FPS is a display rate, not measured inference throughput.
+
 The upstream reference in-distribution mean is 40.6%; it is a model-card result, not a result from this deployment. Shared policy RNG and concurrent request ordering are recorded execution conditions, not a claim of bitwise reproduction.

@@ -14,6 +14,7 @@ import threading
 import time
 import urllib.request
 import xml.etree.ElementTree as ET
+from summarize import summarize
 
 
 def save(path, value):
@@ -40,7 +41,14 @@ def members(record):
             continue
         r = identity(int(p.name))
         if r and r['uid'] == os.getuid() and r['session'] == record['pid'] and r['start'] >= record['start'] and r['state'] != 'Z':
-            rows.append(r)
+            try:
+                env = (p/'environ').read_bytes().split(b'\0')
+            except OSError:
+                continue
+            # A long sweep may outlive PID reuse. Session numbers alone must
+            # never select a later, unrelated process owned by the same user.
+            if f'VLABENCH_RUN_TOKEN={record["token"]}'.encode() in env:
+                rows.append(r)
     return rows
 
 
@@ -102,6 +110,7 @@ def main():
                                      stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         row = identity(child.pid)
         assert row and row['uid'] == os.getuid()
+        row['token'] = env['VLABENCH_RUN_TOKEN']
         with guard:
             processes.append((child, row))
             save(output / 'processes.json', [r for _, r in processes])
@@ -165,6 +174,8 @@ def main():
             if child.poll() is None:
                 stop(row)
                 child.wait(timeout=10)
+            if child.returncode != 0 and failure is None:
+                failure = 'worker_exit_' + str(child.returncode)
             records = [json.loads(p.read_text()) for p in sorted(jobout.glob('episode-*.json'))]
             errors = list(jobout.glob('error-*.json'))
             result = {**job, 'gpu': gpu, 'worker': worker, 'exit_code': child.returncode,
@@ -221,6 +232,7 @@ def main():
              'expected': sum(j['count'] for j in jobs), 'completed': sum(j['completed'] for j in rows),
              'successes': sum(j['successes'] for j in rows), 'errors': sum(j['errors'] for j in rows),
              'not_completed': sum(j['not_completed'] for j in rows)})
+        summarize(output)
         success = True
     finally:
         cancel.set()

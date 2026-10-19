@@ -121,6 +121,10 @@ def main():
                 frames.append(self.final_rgb)
             self.video_frames = len(frames)
             super().save_video(frames, save_dir)
+            if self.final_rgb is not None:
+                from PIL import Image
+                mosaic = np.vstack([np.hstack(self.final_rgb[:2]), np.hstack(self.final_rgb[2:4])])
+                Image.fromarray(mosaic).save(Path(save_dir).with_suffix('.last.jpg'))
 
     client = WebsocketClientPolicy('127.0.0.1', a.port)
     policy = official.Pi0(client=client, replan_steps=5)
