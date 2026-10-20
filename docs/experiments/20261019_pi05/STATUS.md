@@ -1,4 +1,8 @@
-# Execution status
+# Current status
+
+2026-10-20: the full sweep has finished, with 2413 valid episodes, 47 physics errors and 558 successes across all 50 groups. Both cards were returned to the queued RLT jobs. See [complete results and coverage](results-20261020/RESULTS.md).
+
+## Accepted startup record
 
 2026-10-19 23:13 CST: the four-episode integration smoke passed and the full **50 groups / 2460 released scenes** evaluation started on Shenzhen 2 physical GPUs 4/5. Two simulator processes share each card's official policy server. The former workload was closed at its complete checkpoint before handoff; the original per-card RLT jobs remain next in queue.
 
